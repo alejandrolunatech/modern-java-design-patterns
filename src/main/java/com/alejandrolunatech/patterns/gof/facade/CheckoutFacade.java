@@ -5,6 +5,7 @@ import com.alejandrolunatech.patterns.gof.facade.Subsystems.OutOfStockException;
 import com.alejandrolunatech.patterns.gof.facade.Subsystems.PaymentDeclinedException;
 import com.alejandrolunatech.patterns.gof.facade.Subsystems.Payments;
 import com.alejandrolunatech.patterns.gof.facade.Subsystems.Shipping;
+import com.alejandrolunatech.patterns.gof.facade.Subsystems.ShippingUnavailableException;
 import java.util.Objects;
 
 /**
@@ -49,7 +50,14 @@ public final class CheckoutFacade {
             inventory.release(reservation);
             return new Result.Rejected("payment declined: " + e.getMessage());
         }
-        String tracking = shipping.book(reservation, request.address());
+        String tracking;
+        try {
+            tracking = shipping.book(reservation, request.address());
+        } catch (ShippingUnavailableException e) {
+            payments.refund(payment);
+            inventory.release(reservation);
+            return new Result.Rejected("shipping unavailable: " + e.getMessage());
+        }
         return new Result.Placed(payment, tracking);
     }
 }

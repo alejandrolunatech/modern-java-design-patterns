@@ -18,10 +18,13 @@ public final class Subsystems {
 
         /** Returns a payment reference, or throws {@link PaymentDeclinedException}. */
         String charge(String customerId, long amountCents);
+
+        void refund(String paymentReference);
     }
 
     public interface Shipping {
 
+        /** Returns a tracking code, or throws {@link ShippingUnavailableException}. */
         String book(String reservationId, String address);
     }
 
@@ -31,6 +34,15 @@ public final class Subsystems {
 
         public OutOfStockException(String sku) {
             super("out of stock: " + sku);
+        }
+    }
+
+    public static final class ShippingUnavailableException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public ShippingUnavailableException(String reason) {
+            super(reason);
         }
     }
 
