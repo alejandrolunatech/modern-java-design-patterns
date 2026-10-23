@@ -90,7 +90,7 @@ cd modern-java-design-patterns
 ./mvnw verify
 ```
 
-The build compiles with all warnings as errors and runs 78 tests, including the architecture rules.
+The build compiles with all warnings as errors and runs 80 tests, including the architecture rules.
 
 ## Tests and quality
 

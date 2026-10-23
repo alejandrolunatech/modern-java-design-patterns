@@ -1,8 +1,8 @@
 # Facade
 
-**Problem.** Placing an order touches inventory, payments and shipping, in a set order, with a compensation step when payment fails. Every caller repeating that sequence will get it wrong somewhere.
+**Problem.** Placing an order touches inventory, payments and shipping, in a set order, with compensation steps when a later step fails. Every caller repeating that sequence will get it wrong somewhere.
 
-**The code.** `CheckoutFacade.placeOrder` is the one entry point. It reserves stock, charges, books shipping, and releases the reservation if the payment is declined. The result is a sealed type: `Placed` or `Rejected`.
+**The code.** `CheckoutFacade.placeOrder` is the one entry point. It reserves stock, charges and books shipping. When a step fails it undoes the ones before it, newest first: a declined payment releases the reservation, and unavailable shipping refunds the payment and then releases the reservation. The result is a sealed type: `Placed` or `Rejected`.
 
 **What modern Java changes.** A sealed result type replaces exceptions for expected outcomes, so callers must handle both cases.
 

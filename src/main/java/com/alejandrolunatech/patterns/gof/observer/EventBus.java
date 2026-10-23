@@ -10,7 +10,8 @@ import java.util.function.Consumer;
  * Observers are plain {@link Consumer}s. Subscribing returns a handle that unsubscribes, so
  * listeners can be used with try-with-resources and never leak.
  *
- * <p>A failing listener does not stop the others: its exception goes to the error handler.
+ * <p>A failing listener does not stop the others: its exception goes to the error handler. If
+ * the error handler itself throws, that is dropped too, so delivery always reaches every listener.
  */
 public final class EventBus<E> {
 
@@ -35,10 +36,18 @@ public final class EventBus<E> {
                 listener.accept(event);
                 delivered++;
             } catch (RuntimeException e) {
-                onListenerError.accept(event, e);
+                report(event, e);
             }
         }
         return delivered;
+    }
+
+    private void report(E event, RuntimeException error) {
+        try {
+            onListenerError.accept(event, error);
+        } catch (RuntimeException handlerFailure) {
+            // The handler was the last place to report to; the remaining listeners matter more.
+        }
     }
 
     public int listenerCount() {

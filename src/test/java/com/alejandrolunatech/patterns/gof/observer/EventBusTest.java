@@ -54,4 +54,21 @@ class EventBusTest {
         assertThat(shippedOrders).containsExactly("o-7");
         assertThat(errors).containsExactly("mail server down");
     }
+
+    @Test
+    void aFailingErrorHandlerDoesNotStopTheOthersEither() {
+        EventBus<OrderEvent> strictBus = new EventBus<>((event, error) -> {
+            throw new IllegalStateException("log sink down");
+        });
+        List<OrderEvent> heard = new ArrayList<>();
+        strictBus.subscribe(event -> {
+            throw new IllegalStateException("mail server down");
+        });
+        strictBus.subscribe(heard::add);
+
+        int delivered = strictBus.publish(new OrderEvent.Placed("o-8", 900));
+
+        assertThat(delivered).isEqualTo(1);
+        assertThat(heard).containsExactly(new OrderEvent.Placed("o-8", 900));
+    }
 }
